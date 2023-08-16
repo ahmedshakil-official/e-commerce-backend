@@ -1,11 +1,14 @@
 from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404
 from rest_framework.response import Response
 
 from . import models
 from . import serializers
+from .pagination import DefaultPagination
+from .filters import ProductFilter
 
 
 class CollectionApiView(ListCreateAPIView):
@@ -30,8 +33,11 @@ class CollectionDetailApiView(RetrieveUpdateDestroyAPIView):
 class ProductsApiView(ListCreateAPIView):
     queryset = models.Product.objects.all()
     serializer_class = serializers.ProductSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["collection_id"]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = ProductFilter
+    search_fields = ["title", "description"]
+    ordering_fields = ["unit_price", "last_update"]
+    pagination_class = DefaultPagination
 
     def get_serializer_context(self):
         return {"request": self.request}
